@@ -1,0 +1,11 @@
+
+# dependencies
+/node_modules
+/.dynamodb
+
+# enviroment
+/.env
+/.envDot
+
+# row data
+/schema.json

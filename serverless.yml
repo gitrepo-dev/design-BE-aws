@@ -1,0 +1,227 @@
+#aws product design app apis
+#version 1.0.0
+
+service: aws-dynamoDB-product-design-v1
+provider:
+  name: aws
+  runtime: nodejs14.x  
+  lambdaHashingVersion: 20201221
+  stage: dev
+  region: ap-south-1
+  iam:
+    role:
+      statements: # permissions for all of your functions can be set here
+        - Effect: Allow
+          Action: # Gives permission to DynamoDB tables in a specific region
+            # - dynamodb:PostTable
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - { "Fn::GetAtt": ["ProductTable", "Arn"] } 
+            - { "Fn::GetAtt": ["UserTable", "Arn"] }
+            - { "Fn::GetAtt": ["CartTable", "Arn"] }
+            # Resource: !GetAtt PostTable.Arn
+  environment:
+    PRODUCT_TABLE_NAME: ${self:service}-product # table name use for data
+    USER_TABLE_NAME: ${self:service}-user # table name use for data
+    CART_TABLE_NAME: ${self:service}-cart # table name use for data
+
+custom:
+  dynamodb:
+    start:
+      migrate: true
+    stages:
+      - dev
+  serverless-offline:
+    httpPort: 5000 # for api port
+    resourceRoutes: true # http proxy
+
+
+resources: # actual config for table
+  Resources:
+    CartTable:
+      Type: AWS::DynamoDB::Table # serverless name of table
+      Properties:
+        TableName: ${self:service}-cart # s3 table name
+        AttributeDefinitions:
+          - AttributeName: uuid #field name
+            AttributeType: S # cart product id will be string
+        KeySchema: # it will generate key for product id
+          - AttributeName: uuid
+            KeyType: HASH # generate hast id for product id
+        ProvisionedThroughput: # how much min you want to read and write data in table
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    ProductTable:
+      Type: AWS::DynamoDB::Table # serverless name of table
+      Properties:
+        TableName: ${self:service}-product # s3 table name
+        AttributeDefinitions:
+          - AttributeName: uuid #field name
+            AttributeType: S # product id will be string
+        KeySchema: # it will generate key for product id
+          - AttributeName: uuid
+            KeyType: HASH # generate hast id for product id
+        ProvisionedThroughput: # # how much min you want to read and write data in table
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+    UserTable:
+      Type: AWS::DynamoDB::Table # serverless name of table
+      Properties:
+        TableName: ${self:service}-user # s3 table name
+        AttributeDefinitions: # user fields name
+          - AttributeName: email #field name
+            AttributeType: S # uuid id will be string
+        KeySchema: # it will generate key for user id
+          - AttributeName: email
+            KeyType: HASH # generate hast id for user id
+        ProvisionedThroughput: # # how much min you want to read and write data in table
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+# commit when deploy on aws packagess
+# plugins:
+#   - serverless-dynamodb-local
+#   - serverless-offline
+
+functions:
+# product api schema
+  getAllProducts:
+      handler: src/productApis.handler     
+      name: get-all-products # lambda function name
+      description: this function for getting the all Products from dynamodb table
+      timeout: 10 #sec to execute otherwise fail
+      memorySize: 128 #it will take max size
+      events:
+        - http: # endpoint and params for api gatway
+            path: purchased/history
+            method: get
+            private: true
+            cors: true
+
+  createProduct:
+    handler: src/productApis.handler     
+    name: purchase-product # lambda function name
+    description: this function create product into dynamodb table
+    timeout: 10 #sec to execute otherwise fail
+    memorySize: 128 #it will take max size
+    events:
+      - http: # endpoint and params for api gatway
+          path: /product/purchase
+          method: post
+          private: true
+          cors: true
+
+  deleteProduct:
+    handler: src/productApis.handler     
+    name: delete-all-products # lambda function name
+    description: this function delete all the history products from dynamodb table
+    timeout: 10 #sec to execute otherwise fail
+    memorySize: 128 #it will take max size
+    events:
+      - http: # endpoint and params for api gatway
+          path: delete/history
+          method: delete
+          private: true
+          cors: true
+
+  updateProduct:
+    handler: src/productApis.handler     
+    name: update-product # lambda function name
+    description: this function update Product into dynamodb table
+    timeout: 10 #sec to execute otherwise fail
+    memorySize: 128 #it will take max size
+    events:
+      - http: # endpoint and params for api gatway
+          path: product/update/{productId}
+          method: put
+          private: true
+          cors: true
+
+
+# cart api schema
+  addToCart:
+    handler: src/cartApi.handler    
+    name: add-to-cart # lambda function name
+    description: this function for add to cart
+    timeout: 10 #sec to execute otherwise fail
+    memorySize: 128 #it will take max size
+    events:
+      - http: # endpoint and params for api gatway
+          path: cart/add
+          method: post
+          private: true
+          cors: true
+
+  getAllCartProducts:
+      handler: src/cartApi.handler     
+      name: get-all-cart-products # lambda function name
+      description: this function for getting the all Products from dynamodb table
+      timeout: 10 #sec to execute otherwise fail
+      memorySize: 128 #it will take max size
+      events:
+        - http: # endpoint and params for api gatway
+            path: cart/products
+            method: get
+            private: true
+            cors: true
+
+  removeFromCart:
+    handler: src/cartApi.handler    
+    name: remove-item-from-cart # lambda function name
+    description: this function for remove product from cart
+    timeout: 10 #sec to execute otherwise fail
+    memorySize: 128 #it will take max size
+    events:
+      - http: # endpoint and params for api gatway
+          path: cart/remove/{uuid}
+          method: delete
+          private: true
+          cors: true
+
+
+
+# user api schema
+  registrationUser:
+      handler: src/userApis.handler     
+      name: registration-user # lambda function name
+      description: this function for added new user in dynamodb table
+      timeout: 10 #sec to execute otherwise fail
+      memorySize: 128 #it will take max size
+      events:
+        - http: # endpoint and params for api gatway
+            path: user/registration
+            method: post
+            private: false
+            cors: true
+
+  loginUser:
+    handler: src/userApis.handler    
+    name: login-user # lambda function name
+    description: this function for login user
+    timeout: 10 #sec to execute otherwise fail
+    memorySize: 128 #it will take max size
+    events:
+      - http: # endpoint and params for api gatway
+          path: user/login
+          method: post
+          private: false
+          cors: true
+
+  userBillingDetails:
+    handler: src/userApis.handler     
+    name: user-billing-details # lambda function name
+    description: this function add billing details of user into dynamodb table
+    timeout: 10 #sec to execute otherwise fail
+    memorySize: 128 #it will take max size
+    events:
+      - http: # endpoint and params for api gatway
+          path: /user/billing/details
+          method: put
+          private: true
+          cors: true
+

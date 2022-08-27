@@ -1,0 +1,28 @@
+name: aws-dynamoDB-product-design #name of your workflow
+
+on: #event
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+    - uses: actions/checkout@v2 #action
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1 #action
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm ci #command
+    - name: serverless deploy #name of action
+      uses: serverless/github-action@master #action
+      with:
+        args: deploy
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
