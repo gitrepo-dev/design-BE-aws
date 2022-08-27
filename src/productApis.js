@@ -27,19 +27,15 @@ app.post('/product/purchase', async (req, res) => {
       let params;
       if (obj?.product?.length > 0) {
         obj.product.forEach(async (eachItem) => {
-
           params = {
             TableName: process.env.PRODUCT_TABLE_NAME, // table name from the serverless file
             Item: marshall(eachItem || {}) // conver it in dynamo formate
           }
-
-          await db.send(new PutItemCommand(params))
-          await db.send(new DeleteItemCommand({
+          db.send(new PutItemCommand(params))
+          db.send(new DeleteItemCommand({
             TableName: process.env.CART_TABLE_NAME,
             Key: marshall({ uuid: eachItem.uuid })
           }))
-
-
         })
       } else {
         params = {
@@ -71,7 +67,6 @@ app.get('/purchased/history', async (req, res) => {
   try {
     const { Items } = await db.send(new ScanCommand({ TableName: process.env.PRODUCT_TABLE_NAME })); // send params to dynamo client to get data
     if (Items && Items.length > 0) {
-      console.log(Items, 'Items')
       res.status(200).json({
         data: Items?.map(item => unmarshall(item)),
         message: 'Successfully fetched all purchased history.',
