@@ -1,4 +1,4 @@
-name: aws-dynamoDB-product-design #name of your workflow
+name: aws-dynamoDB-product-design-v2 #name of your workflow
 
 on: #event
   push:
