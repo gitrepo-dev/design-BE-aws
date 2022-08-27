@@ -49,13 +49,13 @@ app.get('/cart/products', async (req, res) => {
   try {
     const { Items } = await db.send(new ScanCommand({ TableName: process.env.CART_TABLE_NAME })); // send params to dynamo client to get data
 
-    if(Items && Items.length > 0) {
+    if (Items && Items.length > 0) {
       res.status(200).json({
         data: Items.map((item) => unmarshall(item)),
         message: 'Successfully fetched all cart products.',
         success: true
       });
-    }else{
+    } else {
       res.status(200).json({
         data: [],
         message: 'Not found product.',
@@ -81,8 +81,10 @@ app.delete('/cart/remove/:uuid', async (req, res) => {
       Key: marshall({ uuid: req.params.uuid }),
     };
     const data = await db.send(new DeleteItemCommand(params)); // send params to dynamo client to get data
+    const { Items } = await db.send(new ScanCommand({ TableName: process.env.CART_TABLE_NAME }));
     if (data.$metadata.httpStatusCode === 200) {
       res.status(200).json({
+        data: Items?.map(data => unmarshall(data)),
         message: 'Successfully removed products from cart.',
         success: true
       })

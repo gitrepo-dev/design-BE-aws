@@ -33,34 +33,23 @@ app.post('/product/purchase', async (req, res) => {
             Item: marshall(eachItem || {}) // conver it in dynamo formate
           }
 
-          const { Item } = await db.send(new GetItemCommand({
+          await db.send(new PutItemCommand(params))
+          await db.send(new DeleteItemCommand({
             TableName: process.env.CART_TABLE_NAME,
-            Key: marshall({ uuid: eachItem.uuid }),
+            Key: marshall({ uuid: eachItem.uuid })
           }))
-          let response;
-          if (Item && Item?.uuid?.S) {
-            response = await db.send(new DeleteItemCommand({
-              TableName: process.env.CART_TABLE_NAME,
-              Key: marshall({ uuid: eachItem.uuid })
-            }))
-          }
-          if (response?.$metadata?.httpStatusCode) {
-            await db.send(new PutItemCommand(params))
-          }
+
+
         })
-        const { Items } = await db.send(new ScanCommand({ TableName: process.env.CART_TABLE_NAME }));
-        if (Items) {
-          res.status(200).json({
-            message: 'Successfully purchased.',
-            success: true
-          });
-        }
       } else {
         params = {
           TableName: process.env.PRODUCT_TABLE_NAME, // table name from the serverless file
           Item: marshall(obj.product || {}) // conver it in dynamo formate
         }
         await db.send(new PutItemCommand(params))
+      }
+      const { Items } = await db.send(new ScanCommand({ TableName: process.env.CART_TABLE_NAME }));
+      if (Items) {
         res.status(200).json({
           message: 'Successfully purchased.',
           success: true
@@ -82,8 +71,9 @@ app.get('/purchased/history', async (req, res) => {
   try {
     const { Items } = await db.send(new ScanCommand({ TableName: process.env.PRODUCT_TABLE_NAME })); // send params to dynamo client to get data
     if (Items && Items.length > 0) {
+      console.log(Items, 'Items')
       res.status(200).json({
-        data: Items.map((item) => unmarshall(item)),
+        data: Items?.map(item => unmarshall(item)),
         message: 'Successfully fetched all purchased history.',
         success: true
       });
