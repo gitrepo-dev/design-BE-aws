@@ -1,7 +1,7 @@
 // config dynamodb
 const {DynamoDBClient} = require("@aws-sdk/client-dynamodb");
 const client = new DynamoDBClient({
-    // commit when deploy on aws
+    // commit when deploy on aws config
     // region: "localhost",
     // accessKeyId: "aws_key_id",
     // secretAccessKeyId: "aws_key_secret",

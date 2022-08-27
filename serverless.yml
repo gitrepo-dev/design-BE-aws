@@ -83,7 +83,7 @@ resources: # actual config for table
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
 
-# commit when deploy on aws packagess
+# commit when deploy on aws
 # plugins:
 #   - serverless-dynamodb-local
 #   - serverless-offline
