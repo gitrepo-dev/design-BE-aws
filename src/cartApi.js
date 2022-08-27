@@ -81,8 +81,9 @@ app.delete('/cart/remove/:uuid', async (req, res) => {
       Key: marshall({ uuid: req.params.uuid }),
     };
     const data = await db.send(new DeleteItemCommand(params)); // send params to dynamo client to get data
-    const { Items } = await db.send(new ScanCommand({ TableName: process.env.CART_TABLE_NAME }));
+   
     if (data.$metadata.httpStatusCode === 200) {
+      const { Items } = await db.send(new ScanCommand({ TableName: process.env.CART_TABLE_NAME }));
       res.status(200).json({
         data: Items?.map(data => unmarshall(data)),
         message: 'Successfully removed products from cart.',
