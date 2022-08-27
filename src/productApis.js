@@ -137,11 +137,11 @@ app.delete('/delete/history', (req, res) => {
         }
         db.send(new DeleteItemCommand(params))
       })
-      res.status(200).json({
-        message: 'Successfully deleted purchased history.',
-        success: true
-      });
     }
+    res.status(200).json({
+      message: 'Successfully deleted purchased history.',
+      success: true
+    });
   } catch (e) {
     res.status(500).json({
       message: `Server error 500`,
