@@ -3,7 +3,7 @@ name: aws-dynamoDB-product-design #name of your workflow
 on: #event
   push:
     branches:
-      - develop
+      - master
 
 jobs:
   deploy:
