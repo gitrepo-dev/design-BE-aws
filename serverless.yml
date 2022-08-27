@@ -1,7 +1,7 @@
 #aws product design app apis
 #version 1.0.0
 
-service: aws-dynamoDB-product-design-v1
+service: aws-dynamoDB-product-design-v2
 provider:
   name: aws
   runtime: nodejs14.x  
